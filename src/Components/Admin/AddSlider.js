@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Navigate, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const baseStyle = {
   display: "flex",
@@ -32,25 +33,32 @@ const rejectStyle = {
 const AddSlider = (props) => {
   const navigate = useNavigate();
   const [file, setFiles] = useState([]);
-  // const [closeModel, setCloseModel] = useState(false);
-
+  const [error, setError] = useState("");
   const onDrop = useCallback((acceptedFiles) => {
-    console.log(acceptedFiles, "acceptedFiles line no 34");
-    setFiles(
+    {acceptedFiles.length > 0 ? setFiles(
       acceptedFiles.map((file) =>
         Object.assign(file, {
           preview: URL.createObjectURL(file),
         })
       )
-    );
+    ) : setError("File is To large")}
+    
   }, []);
   const {
     getInputProps,
     getRootProps,
     isDragAccept,
     isDragReject,
+    rejectedFiles,
     isDragActive,
-  } = useDropzone({ onDrop, accept: "image/jpeg, image/png" });
+    maxSize,
+  } = useDropzone({
+    onDrop,
+    accept: "image/jpeg, image/png",
+    minSize: 0,
+    maxSize: 1000000,
+  });
+
   const style = useMemo(
     () => ({
       ...baseStyle,
@@ -67,56 +75,28 @@ const AddSlider = (props) => {
   ));
   // clean up _______________________
 
-  useEffect(
-    () => () => {
+    useEffect(
+     () => {
       file.forEach((file) => URL.revokeObjectURL(file.preview));
-      // setFiles((file) =>[...file, files])
     },
     [file]
   );
   const slideAddHandler = (e) => {
     const body = new FormData();
     e.preventDefault();
-    console.log(file, "file");
-    props.sliderData(file);
+    for (let i = 0; i < file.length; i++) {
+      body.append("file", file[i]);
+    }
+    props.sliderData(body);
     navigate("/slider");
     document.getElementById("exampleModal").classList.remove("show", "d-block");
     document
       .querySelectorAll(".modal-backdrop")
       .forEach((el) => el.classList.remove("modal-backdrop"));
-    // setCloseModel(true);
     setFiles([]);
-    // const uploadData = () => {
-    const token = localStorage.getItem("Token");
-    console.log(token, "TokenToken");
-    console.log(file, "files type");
-    for (let i = 0; i < file.length; i++) {
-      body.append("file", file[i]);
-    }
-    axios
-      .post(
-        "http://localhost:5000/api/slider/upload",
-        body,
-
-        {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        }
-        // file
-      )
-      .then((data) => {
-        if (data.status) {
-          alert();
-          console.log(data, "uploaded sucessfully");
-          setFiles([file]);
-        }
-      })
-      .catch((err) => {
-        console.log(err.response.data.Error, "error in upload");
-      });
-    // };
+    
   };
+  console.log(file, "preview error")
   return (
     <>
       <div
@@ -125,6 +105,7 @@ const AddSlider = (props) => {
         aria-labelledby="exampleModalLabel"
         aria-hidden="true"
       >
+        {/* {!closeModel && ( */}
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
@@ -141,23 +122,29 @@ const AddSlider = (props) => {
             <div className="modal-body">
               <h6>Add Image</h6>
               <div {...getRootProps(style)}>
-                <input {...getInputProps()} />
+                <input {...getInputProps(style)} />
                 <div className="">Drag and drops files here</div>
+                {/* {isFileTooLarge && (
+                  <div className="text-danger mt-2">File is too large.</div>
+                )} */}
               </div>
               <br></br>
               <div className="avatar avatar-xl me-3 border-radius-lg rounded float-start ">
-                {previewSlide}
+                 {/* {previewSlide} */}
+                {file.length > 0 ? previewSlide : <p style={{color:"red"}}>{error}</p>}
+                
               </div>
             </div>
 
+
             <div className="modal-footer">
-              <button
+            {!file.length ? null :<button
                 type="button"
                 className="btn btn-primary"
                 onClick={(e) => slideAddHandler(e)}
               >
                 Add
-              </button>
+              </button>}
               <button
                 type="button"
                 className="btn btn-secondary"

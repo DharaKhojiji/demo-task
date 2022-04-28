@@ -1,7 +1,113 @@
-import React from "react";
+import axios from "axios";
+import React,{useState, useEffect} from "react";
+import { toast, ToastContainer } from "react-toastify";
 import AddGallery from "./AddGallery";
-
+import ToggleButton from 'react-toggle-button'
 const Gallery = () => {
+  const token = localStorage.getItem("Token");
+  const [gallery, setGallery] = useState([])
+
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/gallery/")
+      .then((data) => {
+        if (data.status) {
+          setGallery(data.data.data);
+         
+        }
+      })
+      .catch((err) => {
+        console.log(err.response.data.message);
+      });
+  }, []);
+
+  const ImagedataHandler = (img) => {
+  axios
+     .post("http://localhost:5000/api/gallery/upload",
+      img, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      },).then((data) =>{
+        if (data.status) { 
+          toast.success(data.data.message);
+          axios
+            .get("http://localhost:5000/api/gallery/")
+            .then((data) => {
+               setGallery(data.data.data);
+            })
+            .catch((err) => {
+              console.log(err.response.data.message);
+            });
+        }
+      }).catch((err) => {
+        console.log(err.response)
+      })
+  }
+  const ImageDeleteHandler = (id) => {
+    console.log(id, "id delete slider");
+    axios
+      .delete(`http://localhost:5000/api/gallery/delete/${id}`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      })
+      .then((data) => {
+        if (data.status) {
+          toast.success(data.data.message);
+          axios
+            .get("http://localhost:5000/api/gallery/")
+            .then((data) => {
+              if (data.status) {
+                setGallery(data.data.data);
+              }
+            })
+            .catch((err) => {
+              console.log(err.response.data.message);
+            });
+        }
+      })
+      .catch((err) => {
+        console.log("error", err.response.data);
+      });
+  };
+  
+  const ImageAciveHandler = (id) => {
+    // console.log(id, "id for active ");
+
+    axios
+      .patch(`http://localhost:5000/api/gallery/update/${id}`, gallery, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      })
+      .then((data) => {
+        if (data.status) {
+          toast.success(data.data.message);
+          // setActive((preValue) =>!preValue)
+          axios
+            .get(`http://localhost:5000/api/gallery/`, {
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+            })
+            .then((data) => {
+              if (data.status) {
+                setGallery(data.data.data);
+               
+              }
+            })
+            .catch((err) => {
+              console.log(err.response.data.message);
+            });
+        }
+      })
+      .catch((err) => {
+        console.log(err.response.data.message);
+      });
+  };
+ 
   return (
     <>
       <div className="container-fluid py-4">
@@ -36,7 +142,7 @@ const Gallery = () => {
                     <thead>
                       <tr>
                         <th className="text-center text-uppercase text-secondary font-weight-bolder opacity-7">
-                          ID
+                          NAME
                         </th>
                         <th className="text-center text-uppercase text-secondary font-weight-bolder opacity-7">
                           IMAGE
@@ -50,39 +156,56 @@ const Gallery = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td className="align-middle text-center text-sm">
-                          <p className="text-lg font-weight-bold mb-0">1</p>
-                        </td>
-                        <td className="align-middle text-center text-sm">
-                          <div>
-                            <img
-                              src="../assets/img/team-2.jpg"
-                              className="avatar avatar-xl me-3 border-radius-lg"
-                              alt="user1"
-                            />
-                          </div>
-                        </td>
-                        <td className="align-middle text-center text-lg">
-                          <span className="badge badge-sm bg-gradient-success">
-                            Active
-                          </span>
-                        </td>
-                        <td className="align-middle text-center text-lg">
-                          <button className="badge badge-sm bg-gradient-danger">
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
+                        {gallery.map((img) => {
+                          return (
+                            <tr key={img._id}>
+                              <td className="align-middle text-center text-sm">
+                                <p className="text-lg font-weight-bold mb-0">
+                                  {img.name}
+                                </p>
+                              </td>
+                              <td className="align-middle text-center text-sm">
+                                <div>
+                                  <img
+                                    src={`http://${img.url}`}
+                                    //  src={slideItem.url}
+                                    className="avatar avatar-xl me-3 border-radius-lg"
+                                    alt="icons"
+                                  />
+                                </div>
+                              </td>
+                              <td style={{ paddingLeft: "9.5%" }}>
+                                <ToggleButton
+                                  value={img.status || false}
+                                  onToggle={() => {
+                                    ImageAciveHandler(img._id)
+                                  }}
+                                />
+                              </td>
+                            
+                              <td className="text-center text-lg">
+                                <button
+                                  className="badge badge-sm bg-gradient-danger"
+                                  onClick={() =>
+                                    ImageDeleteHandler (img._id)
+                                  }
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
                   </table>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <ToastContainer/>
       </div>
-      <AddGallery></AddGallery>
+      <AddGallery addImage={ImagedataHandler}></AddGallery>
     </>
   );
 };

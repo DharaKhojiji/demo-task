@@ -1,17 +1,16 @@
-import React, { useContext}from "react";
+import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../context/AuthContext";
 const Sidebar = () => {
-  const  {logout} =  useContext(UserContext)
-  const navigate =  useNavigate()
+  const { logout } = useContext(UserContext);
+  const navigate = useNavigate();
   const Signout = (e) => {
     alert();
-    logout()
+    logout();
     localStorage.removeItem("user");
     localStorage.removeItem("Token");
-    navigate("/")
-
-  }
+    navigate("/");
+  };
   return (
     <div
       className="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3   bg-gradient-dark"
@@ -110,32 +109,27 @@ const Sidebar = () => {
             Account Settings
           </h6>
         </li>
-       
-    
-          <li className="nav-item">
-            <div className="nav-link text-white " href="./pages/sign-in.html">
-              <div className="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i className="material-icons opacity-10">login</i>
-              </div>
-           
-            
-              <button  onClick={Signout} >
-                <span className="nav-link-text ms-1">
-                Sign out
-                </span>
-               </button>
-              
+
+        <li className="nav-item">
+          <div className="nav-link text-white " href="./pages/sign-in.html">
+            <div className="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i className="material-icons opacity-10">login</i>
             </div>
-          </li>
-       
-        <Link to="/reset">
+
+            <button onClick={Signout}>
+              <span className="nav-link-text ms-1">Sign out</span>
+            </button>
+          </div>
+        </li>
+
+        <Link to="/changepassword">
           <li className="nav-item">
-            <div className="nav-link text-white " href="./pages/sign-up.html">
+            <div className="nav-link text-white " >
               <div className="text-white text-center me-2 d-flex align-items-center justify-content-center">
                 <i className="material-icons opacity-10">lock</i>
               </div>
-          
-              <span className="nav-link-text ms-1">Reset Password</span>
+
+              <span className="nav-link-text ms-1">Change Password</span>
             </div>
           </li>
         </Link>

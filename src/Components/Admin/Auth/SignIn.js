@@ -1,58 +1,69 @@
-import React, { useEffect, useState, useContext } from "react";
-import { UserContext } from "../context/AuthContext";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { useFormik } from "formik";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserContext } from "../../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
-
-
 import { ToastContainer, toast } from "react-toastify";
-const SignUp = () => {
-  const  {user, login} =  useContext(UserContext)
-  const navigate = useNavigate();
+const validate = (values) => {
+  const errors = {};
+  if (!values.email) {
+    errors.email = "Email is Required";
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
+    errors.email = "Invalid email address";
+  }
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  if (!values.password) {
+    errors.password = "Password is Required";
+  } else if (values.password.length > 20) {
+    errors.password = "Must be 20 characters or less";
+  }
+
+  return errors;
+};
+
+const SignIn = () => {
+  const { login } = useContext(UserContext);
+  const [error, setError]=useState([]);
+  const navigate = useNavigate();
   const toastOptions = {
     position: "bottom-center",
     pauseOnHover: true,
     draggable: true,
     theme: "dark",
   };
-  const notify = () => toast("Wow so easy!");
-  const handlevalidation = () => {
-    if (password === "") {
-      toast.error("password is Required", toastOptions);
-      return false;
-    } else if (email === "") {
-      toast.error("email   is required", toastOptions);
-      return false;
-    }
-    return true;
-  };
-  const SignInHandler = (event) => {
-    event.preventDefault();
+  
 
-    if (handlevalidation()) {
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validate,
+    onSubmit: (values) => {
+      console.log(values, "values");
+      const { email, password } = values;
+
       axios
         .post("http://localhost:5000/api/auth/login", { email, password })
         .then(({ status, data }) => {
           if (status === 200) {
-           //lert("success");
-           console.log(data)
+            //lert("success");
+            console.log(data);
             toast.success("Login Succussfully");
-            login()
+            login();
             localStorage.setItem("user", JSON.stringify(data));
+            
             navigate("/dashboard");
           }
         })
         .catch((err) => {
-         // alert("catc");
           console.log("catch", err.response.data);
-          toast.error(err.response.data.message, toastOptions);
+          setError(err.response.data.message)
+          toast.error(error, toastOptions);
         });
-    }
-  };
-
+    },
+  });
   return (
     <div className="container">
       <main className="main-content  mt-0">
@@ -73,7 +84,6 @@ const SignUp = () => {
                     }}
                   ></div>
                 </div>
-                {/* <div className="col-md-6 d-sm ms-auto h-100 pe-0 ms-auto"> */}
                 <div className="col-xl-4 col-lg-5 col-md-7 d-flex flex-column ms-auto me-auto ms-lg-auto me-lg-5">
                   <div className="card" style={{ padding: "36px" }}>
                     <div className="card card-plain">
@@ -82,44 +92,54 @@ const SignUp = () => {
                         style={{ color: " #D81B60" }}
                       >
                         <h4 className="font-weight-bolder">Sign In</h4>
-                        {/* <p className="mb-0">
-                          Enter your email and password To Login
-                        </p> */}
                       </div>
                       <div
                         className="card-body"
                         style={{ marginBottom: "50px" }}
                       >
-                        <form role="form" onSubmit={SignInHandler}>
-                          {/* <div className="input-group input-group-outline mb-3">
-                            <label className="form-label">Name</label>
-                            <input type="text" className="form-control" onChange={(e) => setName(e.target.value)} />
-                          </div> */}
+                        <form onSubmit={formik.handleSubmit}>
                           <label className="form-label">Email</label>
                           <div className="input-group input-group-outline mb-3">
                             <input
                               type="email"
+                              name="email"
                               className="form-control"
-                              onChange={(e) => setEmail(e.target.value)}
-                            />
-                          </div>
-                          <label className="form-label">Password</label>
-                          <div className="input-group input-group-outline mb-3">
-                            <input
-                              type="password"
-                              className="form-control"
-                              onChange={(e) => setPassword(e.target.value)}
+                              onChange={formik.handleChange}
+                              onBlur={formik.handleBlur}
+                              value={formik.values.email}
                             />
                           </div>
 
+                          {formik.errors.email ? (
+                            <div style={{ color: "red" }}>
+                              {formik.errors.email}
+                            </div>
+                          ) : null}
+                          <label className="form-label">password</label>
+                          <div className="input-group input-group-outline mb-3">
+                            <input
+                              type="password"
+                              name="password"
+                              className="form-control"
+                              onChange={formik.handleChange}
+                              onBlur={formik.handleBlur}
+                              value={formik.values.password}
+                            />
+                          </div>
+                          {formik.errors.password ? (
+                            <div style={{ color: "red" }}>
+                              {formik.errors.password}
+                            </div>
+                          ) : null}
                           <div
                             className="text-center"
-                            style={{ paddingLeft: "55%" }}
+                            style={{ paddingLeft: "35%" }}
                           >
-                            <Link to="/reset">
+                            <Link to="/forgotpassword">
                               <span>Forgot Password?</span>
                             </Link>
                           </div>
+
                           <div className="text-center">
                             <button
                               type="submit"
@@ -143,4 +163,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default SignIn;

@@ -1,18 +1,139 @@
 import React, { useState, useId, useEffect, useRef } from "react";
 import AddSlider from "./AddSlider";
+import ToggleButton from 'react-toggle-button'
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 
 const Slider = () => {
+  const token = localStorage.getItem("Token");
   const [slider, setSlider] = useState([]);
-  const [sliderAgain, setSliderAgian] = useState(slider);
+  
+
+ 
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/slider", {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      })
+      .then((data) => {
+        if (data.status) {
+          setSlider(data.data.data);
+        }
+      })
+      .catch((err) => {
+        console.log(err.response.data.message);
+      });
+  }, []);
 
   const sliderDataHandler = (data) => {
-    console.log(data, "data line no 8");
-    setSlider([...data, ...slider]);
-    console.log(Array.isArray(slider), "slider");
-    console.log(slider, "slider");
-    setSliderAgian([...sliderAgain, ...data]);
+    axios
+      .post(
+        "http://localhost:5000/api/slider/upload",
+     
+        data,
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        },
+     
+      )
+      .then((data) => {
+        if (data.status) {
+          toast.success(data.data.message);
+          // console.log(data, "uploaded sucessfully");
+          axios
+            .get("http://localhost:5000/api/slider", {
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+            })
+            .then((data) => {
+              if (data.status) {
+                setSlider(data.data.data);
+              }
+            })
+            .catch((err) => {
+              console.log(err.response.data.message);
+            });
+          // setFiles([file]);
+        }
+      })
+      .catch((err) => {
+        console.log(err.response.data.Error, "error in upload");
+      });
+    
+    // setSlider([...data, ...slider]);
   };
-  const id = useId();
+
+  
+
+  const checkBoxHandler = (id) => {
+    console.log(id, "id for active ");
+
+    axios
+      .patch(`http://localhost:5000/api/slider/update/${id}`, slider, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      })
+      .then((data) => {
+        console.log("after active", data);
+        if (data.status) {
+          toast.success(data.data.message);
+          axios
+            .get("http://localhost:5000/api/slider", {
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+            })
+            .then((data) => {
+              if (data.status) {
+                setSlider(data.data.data);
+              }
+            })
+            .catch((err) => {
+              console.log(err.response.data.message);
+            });
+        }
+      })
+      .catch((err) => {
+        console.log(err.response.data.message);
+      });
+  };
+  const slideDeleteHandler = (id) => {
+    console.log(id, "id delete slider");
+    axios
+      .delete(`http://localhost:5000/api/slider/delete/${id}`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      })
+      .then((data) => {
+        if (data.status) {
+          toast.success(data.data.message);
+          axios
+            .get("http://localhost:5000/api/slider", {
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+            })
+            .then((data) => {
+              if (data.status) {
+                setSlider(data.data.data);
+              }
+            })
+            .catch((err) => {
+              console.log(err.response.data.message);
+            });
+        }
+      })
+      .catch((err) => {
+        console.log("error", err.response.data);
+      });
+  };
   return (
     <>
       <div className="container-fluid py-4">
@@ -47,7 +168,7 @@ const Slider = () => {
                     <thead>
                       <tr>
                         <th className="text-center text-uppercase text-secondary font-weight-bolder opacity-7">
-                          ID
+                          NAME
                         </th>
                         <th className="text-center text-uppercase text-secondary font-weight-bolder opacity-7">
                           IMAGE
@@ -60,45 +181,57 @@ const Slider = () => {
                         </th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {sliderAgain.map((slideItem, id) => {
-                        return (
-                          <tr key={id}>
-                            <td className="align-middle text-center text-sm">
-                              <p className="text-lg font-weight-bold mb-0">
-                                {slideItem.name}
-                              </p>
-                            </td>
-                            <td className="align-middle text-center text-sm">
-                              <div>
-                                <img
-                                  src={slideItem.preview}
-                                  className="avatar avatar-xl me-3 border-radius-lg"
-                                  alt="user1"
+                    <>
+                      <tbody>
+                        {slider.map((slideItem) => {
+                          return (
+                            <tr key={slideItem._id}>
+                              <td className="align-middle text-center text-sm">
+                                <p className="text-lg font-weight-bold mb-0">
+                                  {slideItem.name}
+                                </p>
+                              </td>
+                              <td className="align-middle text-center text-sm">
+                                <div>
+                                  <img
+                                    src={`http://${slideItem.url}`}
+                                    //  src={slideItem.url}
+                                    className="avatar avatar-xl me-3 border-radius-lg"
+                                    alt="icons"
+                                  />
+                                </div>
+                              </td>
+                               <td style={{ paddingLeft: "9.5%" }}>
+                                <ToggleButton
+                                  value={slideItem.status || false}
+                                  onToggle={() => {
+                                    checkBoxHandler(slideItem._id)
+                                  }}
                                 />
-                              </div>
-                            </td>
-
-                            <td className="align-middle text-center text-lg">
-                              <span className="badge badge-sm bg-gradient-success">
-                                Active
-                              </span>
-                            </td>
-                            <td className="align-middle text-center text-lg">
-                              <button className="badge badge-sm bg-gradient-danger">
-                                Delete
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
+                              </td>
+                             
+                              <td className="text-center text-lg">
+                                <button
+                                  className="badge badge-sm bg-gradient-danger"
+                                  onClick={() =>
+                                    slideDeleteHandler(slideItem._id)
+                                  }
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </>
                   </table>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <ToastContainer />
       </div>
       <AddSlider sliderData={sliderDataHandler}></AddSlider>
     </>

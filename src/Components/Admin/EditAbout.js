@@ -17,20 +17,20 @@ const validate = (values) => {
 
   if (!values.text) {
     errors.text = "Feild is Required";
-  } else if (values.text.length > 20) {
-    errors.text = "Must be 20 characters or less";
   }
+  // } else if (values.text.length > 70) {
+  //   errors.text = "Must be 70 characters or less";
+  // }
   if (!values.addresses) {
     errors.addresses = "Feild is Required";
   } else if (values.addresses.length > 70) {
     errors.addresses = "Must be 70 characters or less";
   }
-  // if (values.contactNumber.match(phoneno)) {
-  //    return errors;
-  // } 
-  //  else if (values.contactNumber.match(phoneno)) {
-  //    errors.contactNumber = "Enter A Valid Number";
-  // }
+  if (values.contactNumber.match(phoneno)) {
+    return errors;
+  } else if (values.contactNumber.match(phoneno)) {
+    errors.contactNumber = "Enter A Valid Number";
+  }
 
   if (!values.email) {
     errors.email = "Feild is Required";
@@ -41,42 +41,21 @@ const validate = (values) => {
   return errors;
 };
 
-const AddAbout = (props) => {
+const EditAbout = (props) => {
+ 
+
   const navigate = useNavigate();
-  const token = localStorage.getItem("Token");
   const formik = useFormik({
-    initialValues: {
-      title: "",
-      text: "",
-      addresses: "",
-      contactNumber: "",
-      email: "",
-    },
+    enableReinitialize: true,
+    initialValues: props.edit,
     validate,
     onSubmit: (values, { resetForm }) => {
-      // alert(JSON.stringify(values, null, 2));
-      axios
-        .post("http://localhost:5000/api/aboutUs", values, {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        })
-        .then((data) => {
-          if (data.status) {
-            toast.success(data.data.message);
-            console.log(data, "aboutdata added sucessfully");
-            console.log("about", values);
-            resetForm();
-          }
-        })
-        .catch((err) => {
-          toast.error(err.response.aboutData.Error);
-          console.log(err.response.message);
-        });
+      props.editData(values);
+      resetForm();
       navigate("/about");
 
       document
-        .getElementById("exampleModal")
+        .getElementById("exampleModalEdit")
         .classList.remove("show", "d-block");
       document
         .querySelectorAll(".modal-backdrop")
@@ -88,15 +67,15 @@ const AddAbout = (props) => {
     <>
       <div
         className="modal fade"
-        id="exampleModal"
-        aria-labelledby="exampleModalLabel"
+        id="exampleModalEdit"
+        aria-labelledby="exampleModalEdit"
         aria-hidden="true"
       >
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="exampleModalLabel">
-                Add New About Us
+              <h5 className="modal-title" id="exampleModalEdit">
+                edit About Us
               </h5>
             </div>
             <div className="modal-body">
@@ -116,7 +95,9 @@ const AddAbout = (props) => {
                     className="form-control"
                   />
                 </div>
-                {formik.errors.title ? <div style={{color:"red"}}>{formik.errors.title}</div> : null}
+                {formik.errors.title ? (
+                  <div style={{ color: "red" }}>{formik.errors.title}</div>
+                ) : null}
                 <div className="form-group">
                   <label htmlFor="message-text" className="col-form-label">
                     Text
@@ -132,7 +113,9 @@ const AddAbout = (props) => {
                     className="form-control"
                   />
                 </div>
-                {formik.errors.text ? <div style={{color:"red"}}>{formik.errors.text}</div> : null}
+                {formik.errors.text ? (
+                  <div style={{ color: "red" }}>{formik.errors.text}</div>
+                ) : null}
 
                 <div className="form-group">
                   <label htmlFor="message-text" className="col-form-label">
@@ -150,7 +133,7 @@ const AddAbout = (props) => {
                   />
                 </div>
                 {formik.errors.addresses ? (
-                  <div style={{color:"red"}}>{formik.errors.addresses}</div>
+                  <div style={{ color: "red" }}>{formik.errors.addresses}</div>
                 ) : null}
 
                 <div className="form-group">
@@ -164,12 +147,14 @@ const AddAbout = (props) => {
                     onBlur={formik.handleBlur}
                     value={formik.values.contactNumber}
                     style={{ border: "1px solid" }}
-                    type="number"
+                    type="tel"
                     className="form-control"
                   />
                 </div>
                 {formik.errors.contactNumber ? (
-                  <div style={{color:"red"}}>{formik.errors.contactNumber}</div>
+                  <div style={{ color: "red" }}>
+                    {formik.errors.contactNumber}
+                  </div>
                 ) : null}
                 <div className="form-group">
                   <label htmlFor="message-text" className="col-form-label">
@@ -186,10 +171,12 @@ const AddAbout = (props) => {
                     className="form-control"
                   />
                 </div>
-                {formik.errors.email ? <div style={{color:"red"}}>{formik.errors.email}</div> : null}
+                {formik.errors.email ? (
+                  <div style={{ color: "red" }}>{formik.errors.email}</div>
+                ) : null}
                 <div className="modal-footer">
                   <button type="submit" className="btn btn-primary">
-                    Add
+                    Edit
                   </button>
                   <button
                     type="submit"
@@ -207,4 +194,4 @@ const AddAbout = (props) => {
     </>
   );
 };
-export default AddAbout;
+export default EditAbout;
