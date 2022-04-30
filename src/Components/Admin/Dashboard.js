@@ -29,7 +29,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div className="text-end pt-1">
-                <h4 className="mb-0">$53k</h4>
+                <h4 className="mb-0">7</h4>
               </div>
             </div>
             <hr className="dark horizontal my-0" />
@@ -61,7 +61,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div className="text-end pt-1">
-                <h4 className="mb-0">2,300</h4>
+                <h4 className="mb-0">15</h4>
               </div>
             </div>
             <hr className="dark horizontal my-0" />
@@ -96,7 +96,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div className="text-end pt-1">
-                <h4 className="mb-0">3,462</h4>
+                <h4 className="mb-0">3</h4>
               </div>
             </div>
             <hr className="dark horizontal my-0" />
@@ -127,7 +127,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div className="text-end pt-1">
-                <h4 className="mb-0">$103,430</h4>
+                <h4 className="mb-0">1</h4>
               </div>
             </div>
             <hr className="dark horizontal my-0" />
